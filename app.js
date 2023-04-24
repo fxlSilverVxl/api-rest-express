@@ -13,6 +13,8 @@ const usuarios = [
 // app.put() //* Actualizacion
 // app.delete()//* Eliminacion
 
+app.use(express.json()); //* Le decimos a Express que use este middleware
+
 //? Consulta en la ruta raiz del sitio
 //* Toda peticion siempre va a recibir dos parametros (objetos)
 //* req: la informacion que recibe el servidor desde el cliente
@@ -53,6 +55,28 @@ app.get('/api/usuarios/:year/:month', (req, res) => {
     res.send(req.query);
 });
 
+//* La ruta tiene el mismo nombre que la peticion GET
+//* Express hace la diferencia dependiendo del tipo de peticion
+
+//* La peticion POST la vamos a utilizar para insertar un
+//* nuevo usuario en nuestro arreglo 
+app.post('/api/usuarios', (req, res) => {
+    //* El objeto request tiene la propiedad body 
+    //* que va a venir en formato JSON 
+
+    //* Revisa que este pasando el parametro correcto 
+    if(!req.body.nombre){
+        res.status(400);
+    };
+
+    const usuario = {
+        id: usuarios.length + 1,
+        nombre: req.body.nombre
+    };
+
+    usuarios.push(usuario);
+    res.send(usuario);
+});
 
 app.get('/api/productos', (req, res) => {
     res.send(['mouse', 'teclado', 'monitor'])
