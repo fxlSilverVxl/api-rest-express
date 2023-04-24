@@ -66,7 +66,8 @@ app.post('/api/usuarios', (req, res) => {
 
     //* Revisa que este pasando el parametro correcto 
     if(!req.body.nombre){
-        res.status(400);
+        res.status(400).send('Debe ingresar un nombre');
+        return; //* Es necesario para qeu no continue con el metdodo 
     };
 
     const usuario = {
