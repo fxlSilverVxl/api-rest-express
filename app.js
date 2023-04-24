@@ -1,4 +1,5 @@
 const express = require('express'); //* Importa el paquete express
+const Joi = require('joi')
 const app = express();
 
 const usuarios = [
@@ -7,6 +8,10 @@ const usuarios = [
     {id:3, nombre:'Diego'},
     {id:4, nombre:'yo'}
 ]
+
+function existeUsuario(id){
+    return usuarios.find(u => u.id === parseInt(id));
+}
 
 // app.get() //* Consulta
 // app.post()//* Envio de datos al servidor
@@ -24,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/usuarios', (req, res) => {
-    res.send(['Jorge', 'Ana', 'Karen', 'Luis']);
+    res.send(usuarios);
 });
 
 //* Con los : dlante del id, 
@@ -64,20 +69,61 @@ app.post('/api/usuarios', (req, res) => {
     //* El objeto request tiene la propiedad body 
     //* que va a venir en formato JSON 
 
-    //* Revisa que este pasando el parametro correcto 
-    if(!req.body.nombre){
-        res.status(400).send('Debe ingresar un nombre');
-        return; //* Es necesario para qeu no continue con el metdodo 
-    };
+    //? Creacion del schema con Joi
+    const schema = Joi.object({
+        nombre: Joi.string()
+                    .min(3)
+                    .required()
+    });
+    const {error, value} = schema.validate({nombre: req.body.nombre});
 
-    const usuario = {
-        id: usuarios.length + 1,
-        nombre: req.body.nombre
-    };
+    if(!error) {
+        const usuario = {
+            id: usuarios.length + 1,
+            nombre: req.body.nombre
+        };
 
-    usuarios.push(usuario);
-    res.send(usuario);
+        usuarios.push(usuario);
+        res.send(usuario);
+    }
+    else{
+        const mensaje = error.details[0].message;
+        res.status(400).send(mensaje);
+    }
+    return;
 });
+
+//* Peticion para modificar datos existentes
+//* Este metodo debe recibir un parametro 
+//* id para saber que usuario modificar
+app.put('/api/usuarios/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const usuario = usuarios.find(u => u.id === id);
+    
+    if(!usuario){
+        res.status(404).send('El usuario no existe');
+        return;
+    }
+
+    //* Validar si el dato recibido es correcto 
+    const schema = Joi.object({
+        nombre: Joi.string()
+                    .min(3)
+                    .required()
+    });
+    const {error, value} = schema.validate({nombre: req.body.nombre});
+
+    //? Actualiza el nombre
+    if(!error){
+        usuario.nombre = value.nombre;
+        res.send(usuario);
+    }
+    else{
+        const mensaje = error.details[0].message;
+        res.status(400).send(mensaje);
+    }
+    return;
+})
 
 app.get('/api/productos', (req, res) => {
     res.send(['mouse', 'teclado', 'monitor'])
