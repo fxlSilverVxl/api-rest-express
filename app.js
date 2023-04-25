@@ -13,6 +13,15 @@ function existeUsuario(id){
     return usuarios.find(u => u.id === parseInt(id));
 }
 
+function validarUsuario(nom){
+    const schema = Joi.object({
+        nombre: Joi.string()
+                    .min(3)
+                    .required()
+    })
+    return (schema.validate({nombre:nom}))
+}
+
 // app.get() //* Consulta
 // app.post()//* Envio de datos al servidor
 // app.put() //* Actualizacion
@@ -35,18 +44,16 @@ app.get('/api/usuarios', (req, res) => {
 //* Con los : dlante del id, 
 //* Express sabe que es un parametro a recibir en la ruta
 app.get('/api/usuarios/:id', (req, res) => {
-    //* En el cuerpo del objeto req esta la propiedad params 
-    //* que guarda los parametros enviados
-    //? Los parametros en req.params se reciben como strings
-    //* parseInt, hace el casteo a valores enteros directamente
-    const id = parseInt(req.params.id);
-    //* Devuelve el primer usuario que cumpla con el predicado
-    const usuario = usuarios.find(u => u.id === id);
+    const id = req.params.id;
+    let usuario = existeUsuario(id);
 
-    if(!usuario)
+    if(!usuario){
         res.status(404).send(`El usuario ${id} no existe!`);
+        return;
+    }
 
     res.send(usuario);
+    return;
 })
 
 //? Recibiendo varios parametros
@@ -97,22 +104,15 @@ app.post('/api/usuarios', (req, res) => {
 //* Este metodo debe recibir un parametro 
 //* id para saber que usuario modificar
 app.put('/api/usuarios/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const usuario = usuarios.find(u => u.id === id);
-    
+    let usuario = existeUsuario(req.params.id)
+
     if(!usuario){
         res.status(404).send('El usuario no existe');
         return;
     }
-
-    //* Validar si el dato recibido es correcto 
-    const schema = Joi.object({
-        nombre: Joi.string()
-                    .min(3)
-                    .required()
-    });
-    const {error, value} = schema.validate({nombre: req.body.nombre});
-
+    
+    const {error, value} = validarUsuario(req.body.nombre)
+    
     //? Actualiza el nombre
     if(!error){
         usuario.nombre = value.nombre;
@@ -124,6 +124,23 @@ app.put('/api/usuarios/:id', (req, res) => {
     }
     return;
 })
+
+//* Recibe como parametro el id del usuario
+//* que se va a eliminar
+app.delete('/api/usuarios/:id', (req, res) => {
+    const usuario = existeUsuario(req.params.id);
+    if(!usuario){
+        res.status(404).send('El usuario no existe')
+        return;
+    }
+
+    //* encontrar el index del usuario dentro del arreglo
+    const index = usuarios.indexOf(usuario);
+
+    usuarios.splice(index, 1); //* Elimina el usuario en el indice 
+    res.send(usuario);
+    return;
+});
 
 app.get('/api/productos', (req, res) => {
     res.send(['mouse', 'teclado', 'monitor'])
