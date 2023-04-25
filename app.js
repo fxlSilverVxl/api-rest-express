@@ -1,7 +1,13 @@
-const express = require('express'); //* Importa el paquete express
-const Joi = require('joi')
-const app = express();
+const inicioDebug = require('debug')('app:inicio') //* Importa el paquete debug
+                                    //* El parametro indica el archivo y el entorno
+                                    //* de depuracion
+const dbDebug = require('debug')('app:db')
 
+const express = require('express'); //* Importa el paquete express
+const config = require('config');
+const morgan = require('morgan');
+const Joi = require('joi');
+const app = express();
 const logger = require('./logger');
 
 const usuarios = [
@@ -36,13 +42,18 @@ app.use(express.urlencoded({extended:true}));//* Nuevo middleware
                                             //* en el url
 app.use(express.static('public')); //* Nombre de la carpeta que tendra los recursos estaticos
 
+console.log(`Aplicacion: ${config.get('nombre')}`);
+console.log(`BD Server: ${config.get('configDB.host')}`);
 
-app.use(logger);
+if(app.get('env') === 'development'){
+    app.use(morgan('tiny'));
+    // console.log('Morgan habilitado..') //* Morgan marca en la consola los detalles de las peticiones 
 
-app.use(function(req, res, next){
-    console.log('Autenticando...')
-    next();
-})
+    //* Muestra el mensaje de depuracion
+    inicioDebug('Morgan esta habilitado')
+}
+
+dbDebug('Conectando con la base de datos ... ')
 
 //! Los 3 app.use son middleware y se llaman antes de
 //! las funciones de ruta GET, POST, PUT, DELETE
