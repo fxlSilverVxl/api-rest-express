@@ -4,6 +4,7 @@ const inicioDebug = require('debug')('app:inicio') //* Importa el paquete debug
 const dbDebug = require('debug')('app:db')
 
 const usuarios = require('./routes/usuarios')
+const productos = require('./routes/productos')
 
 const express = require('express'); //* Importa el paquete express
 const config = require('config');
@@ -25,6 +26,8 @@ app.use(express.urlencoded({extended:true}));//* Nuevo middleware
 app.use(express.static('public')); //* Nombre de la carpeta que tendra los recursos estaticos
 
 app.use('/api/usuarios', usuarios); //* Middleware que importamos
+app.use('/api/productos', productos); //* Middleware que importamos
+
 //? El primer parametro es la ruta raiz asociada
 //? con las peticiones a los datos de usuaiors
 //* La ruta raiz 
@@ -69,9 +72,9 @@ app.get('/api/usuarios/:year/:month', (req, res) => {
 //* La ruta tiene el mismo nombre que la peticion GET
 //* Express hace la diferencia dependiendo del tipo de peticion
 
-app.get('/api/productos', (req, res) => {
-    res.send(['mouse', 'teclado', 'monitor'])
-});
+// app.get('/api/productos', (req, res) => {
+//     res.send(['mouse', 'teclado', 'monitor'])
+// });
 
 //! Indispensable 
 //* El modulo process contiene informacion del sistema
