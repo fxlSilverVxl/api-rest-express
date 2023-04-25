@@ -2,6 +2,8 @@ const express = require('express'); //* Importa el paquete express
 const Joi = require('joi')
 const app = express();
 
+const logger = require('./logger');
+
 const usuarios = [
     {id:1, nombre:'Juan'},
     {id:2, nombre:'Karen'},
@@ -28,6 +30,23 @@ function validarUsuario(nom){
 // app.delete()//* Eliminacion
 
 app.use(express.json()); //* Le decimos a Express que use este middleware
+app.use(express.urlencoded({extended:true}));//* Nuevo middleware
+                                            //* Define el uso de la libreria qs
+                                            //* para separar la informacion codificada
+                                            //* en el url
+app.use(express.static('public')); //* Nombre de la carpeta que tendra los recursos estaticos
+
+
+app.use(logger);
+
+app.use(function(req, res, next){
+    console.log('Autenticando...')
+    next();
+})
+
+//! Los 3 app.use son middleware y se llaman antes de
+//! las funciones de ruta GET, POST, PUT, DELETE
+//! para que estas puedan trabajar
 
 //? Consulta en la ruta raiz del sitio
 //* Toda peticion siempre va a recibir dos parametros (objetos)
@@ -158,3 +177,52 @@ const port = process.env.PORT || 3000;
 app.listen(port, ()=>{
     console.log(`Escuchando en el puerto ${port}...`)
 })
+
+//? Funciones middleware
+//* El middleare es un bloque de codigo que se ejecuta
+//* entre las peticiones del usuario (request) y la peticion 
+//* que llega al servidor. Es un enlace entre la peticion 
+//* del usuario y el servidor, antes de que este pueda dar
+//* una respuesta
+
+//* Las funciones middleware son funciones que tienen acceso
+//* al objeto de solicitud (req), al objeto de respuesta(res)
+//* y a la siguiente funcion de middleware en el ciclo de
+//* solicitud/respuestas de la aplicacion. La siguiente
+//* funcion de middleware se denota normalmente como una
+//* variable denominada next.
+
+//* Las funciones de middlware pueden realizar las siguientes
+//* tareas: 
+//*     -   Ejecutar cualquier codigo
+//*     -   Realizar cambio en la solicitud y los objetos de respuesta
+//*     -   Finalizar el ciclo de solicitud/respuesta
+//*     -   Invoca la siguiente funcion de middleware en la pila
+
+//* Express es un framework de direccionamiento y uso de middleware
+//* que permite que la aplicacion tenga funcionalidad minima propia.
+
+//* Ya hemos utilizado algunos middlware como son express.json()
+//* que transforma el body del req a formato JSON 
+
+//*           ---------------------------
+//* Request --|--> json() --> route() --|--> response
+//*           ---------------------------
+
+//? route() --> Funcion GET, POST, PUT, DELETE
+
+//* Una aplicacion Express puede utilizar los siguientes
+//* tipos de middleware
+//*     -   Middleware de nivel de aplicacion
+//*     -   Middleware de nivel de direccionador
+//*     -   Middleware de manejo de errores
+//*     -   Middleware incorporado
+//*     -   Middleware de terceros
+
+
+
+
+//? Recursos estaticos
+//* Los recursos estaticos hacen referencia a archivos, 
+//* imagenes, documentos que se ubican en el servidor.
+//* Vamos a usar un middleware para poder acceder a esos recursos
